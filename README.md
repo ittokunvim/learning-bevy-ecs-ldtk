@@ -14,3 +14,4 @@ https://trouv.github.io/bevy_ecs_ldtk/v0.9.0/index.html
 
 1. [タイルベースゲーム](docs/ch01-00-tile-based-game.md)
     1. [LDtKプロジェクトを作成する](docs/ch01-01-create-ldtk-project/index.md)
+    2. [BevyでLDtkを起動する](docs/ch01-02-spawn-ldtk-project-in-bevy/index.md)
