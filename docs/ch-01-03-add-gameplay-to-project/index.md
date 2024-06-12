@@ -29,3 +29,42 @@ struct PlayerBundle {
 }
 ```
 
+## タイルベースの移動を実装
+
+プレイヤーが`WASD`で移動できるように実装します。
+`GridCoords`の値を操作することでプレイヤーの位置を変えることができます。
+
+そして、移動した情報をプレイヤーエンティティの`GridCoords`コンポーネントに追加します。
+
+```rust
+fn main() {
+    App::new()
+        // ...
+        .add_systems(Update, move_player_from_input)
+        .add_systems(Update, bevy::window::close_on_esc)
+        .run()
+}
+
+fn move_player_from_input(
+    mut players: Query<&mut GridCoords, With<Player>>,
+    input: Res<Input<KeyCode>>,
+) {
+    let movement_direction = if input.any_just_pressed([KeyCode::W, KeyCode::Up]) {
+        GridCoords::new(0, 1)
+    } else if input.any_just_pressed([KeyCode::A, KeyCode::Left]) {
+        GridCoords::new(-1, 0)
+    } else if input.any_just_pressed([KeyCode::S, KeyCode::Down]) {
+        GridCoords::new(0, -1)
+    } else if input.any_just_pressed([KeyCode::D, KeyCode::Right]) {
+        GridCoords::new(1, 0)
+    } else {
+        return;
+    };
+
+    for mut player_grid_coords in players.iter_mut() {
+        let destination = *player_grid_coords + movement_direction;
+        *player_grid_coords = destination;
+    }
+}
+```
+
