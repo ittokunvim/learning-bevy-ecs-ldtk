@@ -245,6 +245,8 @@ fn move_player_from_input(
 
 上記のチェックを追加することで、プレイヤーは壁の中に入らなくなります！
 
+## ゴール時のトリガーレベル遷移
+
 ## 参考URL
 
 https://trouv.github.io/bevy_ecs_ldtk/v0.9.0/tutorials/tile-based-game/add-gameplay-to-your-project.html
