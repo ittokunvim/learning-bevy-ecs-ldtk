@@ -1,5 +1,8 @@
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
+use bevy_ecs_ldtk::utils::grid_coords_to_translation;
+
+const GRID_SIZE: i32 = 16;
 
 #[derive(Default, Component)]
 struct Player;
@@ -28,6 +31,7 @@ fn main() {
         .register_ldtk_entity::<GoalBundle>("Goal")
         .add_systems(Startup, setup)
         .add_systems(Update, move_player_from_input)
+        .add_systems(Update, translate_grid_coords_entities)
         .add_systems(Update, bevy::window::close_on_esc)
         .run()
 }
@@ -65,5 +69,14 @@ fn move_player_from_input(
     for mut player_grid_coords in players.iter_mut() {
         let destination = *player_grid_coords + movement_direction;
         *player_grid_coords = destination;
+
+fn translate_grid_coords_entities(
+    mut grid_coords_entities: Query<(&mut Transform, &GridCoords), Changed<GridCoords>>,
+) {
+    for (mut transform, grid_coords) in grid_coords_entities.iter_mut() {
+        transform.translation =
+            grid_coords_to_translation(*grid_coords, IVec2::splat(GRID_SIZE))
+                .extend(transform.translation.z);
     }
 }
+

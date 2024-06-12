@@ -68,3 +68,34 @@ fn move_player_from_input(
 }
 ```
 
+## `GridCoords`の値から位置を更新
+
+今の時点ではプレイヤーは画面上では全く動きません。
+`bevy_ecs_ldtk`は`GridCoords`エンティティの`Transform`を自動的に保持しません。
+
+これはユーザーに任されており、`Transform`のアニメーションを自由に実装できます。
+
+`bevy_ecs_ldtk`は、グリッドのセルのサイズがわかっていれば、結果の変換を計算するのに役立つユーティリティ関数を提供しています。
+
+```rust
+use bevy_ecs_ldtk::utils::grid_coords_to_translation;
+
+fn main() {
+    App::new()
+        // ...
+        .add_systems(Update, translate_grid_coords_entities)
+        .add_systems(Update, bevy::window::close_on_esc)
+        .run()
+}
+
+fn translate_grid_coords_entities(
+    mut grid_coords_entities: Query<(&mut Transform, &GridCoords), Changed<GridCoords>>,
+) {
+    for (mut transform, grid_coords) in grid_coords_entities.iter_mut() {
+        transform.translation =
+            grid_coords_to_translation(*grid_coords, IVec2::splat(GRID_SIZE))
+                .extend(transform.translation.z);
+    }
+}
+```
+
