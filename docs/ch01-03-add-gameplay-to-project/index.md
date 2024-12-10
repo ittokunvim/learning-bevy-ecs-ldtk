@@ -247,6 +247,61 @@ fn move_player_from_input(
 
 ## ゴール時のトリガーレベル遷移
 
+最後はゴール機能の実装です。プレイヤーがゴールすると次のレベルにスポーンさせます。
+
+`PlayerBundle`と同様に、`GoalBundle`に独自のマーカーコンポーネントと`GridCoords`を与えます。
+
+```rust
+#[derive(Default, Component)]
+struct Goal;
+
+#[derive(Default, Bundle, LdtkEntity)]
+struct GoalBundle {
+    goal: Goal,
+    #[sprite_sheet_bundle]
+    sprite_sheet_bundle: SpriteSheetBundle,
+    #[grid_coords]
+    grid_coords: GridCoords,
+}
+```
+
+次にプレイヤーの`GridCoords`とゴールの`GridCoords`が一致するかどうかをチェックするシステムを実装します。
+最適化として`Changed<GridCoords>`のプレイヤークエリをフィルタリングして、プレイヤーが移動した場合にのみ入力されるようにします。
+
+この処理を実装することで`bevy_ecs_ldtk`は自動的に現在のレベルを削除して、次のレベルを生成します。
+
+```rust
+fn main() {
+    App::new()
+        // ...
+        .add_systems(Update, check_goal)
+        .add_systems(Update, bevy::window::close_on_esc)
+        .run()
+}
+
+fn check_goal(
+    level_selection: ResMut<LevelSelection>,
+    players: Query<&GridCoords, (With<Player>, Changed<GridCoords>)>,
+    goals: Query<&GridCoords, With<Goal>>,
+) {
+    if players
+        .iter()
+        .zip(goals.iter())
+        .any(|(player_grid_coords, goal_grid_coords) | player_grid_coords == goal_grid_coords)
+    {
+        let indices = match level_selection.into_inner() {
+            LevelSelection::Indices(indices) => indices,
+            _ => panic!("level selection should always be Indices in this game"),
+        };
+
+        indices.level += 1;
+    }
+}
+```
+
+これにてシンプルなタイルベースゲームの完成です。
+タイルマップ上でプレイヤーを移動させてゴールまでいくと、次のタイルマップに行きこれを繰り返していきます。
+
 ## 参考URL
 
 https://trouv.github.io/bevy_ecs_ldtk/v0.9.0/tutorials/tile-based-game/add-gameplay-to-your-project.html

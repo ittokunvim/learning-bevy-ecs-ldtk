@@ -12,6 +12,9 @@ struct Player;
 #[derive(Default, Component)]
 struct Wall;
 
+#[derive(Default, Component)]
+struct Goal;
+
 #[derive(Default, Bundle, LdtkEntity)]
 struct PlayerBundle {
     player: Player,
@@ -23,8 +26,11 @@ struct PlayerBundle {
 
 #[derive(Default, Bundle, LdtkEntity)]
 struct GoalBundle {
+    goal: Goal,
     #[sprite_sheet_bundle]
     sprite_sheet_bundle: SpriteSheetBundle,
+    #[grid_coords]
+    grid_coords: GridCoords,
 }
 
 #[derive(Default, Bundle, LdtkIntCell)]
@@ -62,6 +68,7 @@ fn main() {
         .add_systems(Update, move_player_from_input)
         .add_systems(Update, translate_grid_coords_entities)
         .add_systems(Update, cache_wall_locations)
+        .add_systems(Update, check_goal)
         .add_systems(Update, bevy::window::close_on_esc)
         .run()
 }
@@ -139,5 +146,24 @@ fn cache_wall_locations(
 
             *level_walls = new_level_walls;
         }
+    }
+}
+
+fn check_goal(
+    level_selection: ResMut<LevelSelection>,
+    players: Query<&GridCoords, (With<Player>, Changed<GridCoords>)>,
+    goals: Query<&GridCoords, With<Goal>>,
+) {
+    if players
+        .iter()
+        .zip(goals.iter())
+        .any(|(player_grid_coords, goal_grid_coords) | player_grid_coords == goal_grid_coords)
+    {
+        let indices = match level_selection.into_inner() {
+            LevelSelection::Indices(indices) => indices,
+            _ => panic!("level selection should always be Indices in this game"),
+        };
+
+        indices.level += 1;
     }
 }
